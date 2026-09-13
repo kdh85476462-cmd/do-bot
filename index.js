@@ -69,7 +69,7 @@ client.on('interactionCreate', async interaction => {
                 .setPlaceholder('내용을 입력하세요')
                 .setRequired(true);
 
-            // 색코드 입력 칸
+            // 색코드 입력 칸 (#FF0000만 표시)
             const colorInput = new TextInputBuilder()
                 .setCustomId('colorInput')
                 .setLabel('색코드')
