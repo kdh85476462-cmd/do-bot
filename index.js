@@ -13,7 +13,7 @@ app.listen(PORT, () => {
     console.log(`웹 서버가 포트 ${PORT}에서 작동 중입니다.`);
 });
 
-// 디스코드 클라이언트 설정 (메시지 감지를 위해 GuildMessages, MessageContent 권한 필요)
+// 디스코드 클라이언트 설정
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -50,14 +50,12 @@ client.once('ready', async () => {
 
 // 상호작용 처리
 client.on('interactionCreate', async interaction => {
-    // 1. /대시보드 명령어 실행 시 모달 출력
     if (interaction.isChatInputCommand()) {
         if (interaction.commandName === '대시보드') {
             const modal = new ModalBuilder()
                 .setCustomId('dashboardModal')
                 .setTitle('대시보드 메시지 설정');
 
-            // 제목 입력 칸
             const titleInput = new TextInputBuilder()
                 .setCustomId('titleInput')
                 .setLabel('제목')
@@ -65,7 +63,6 @@ client.on('interactionCreate', async interaction => {
                 .setPlaceholder('제목을 입력하세요')
                 .setRequired(true);
 
-            // 내용 입력 칸
             const descriptionInput = new TextInputBuilder()
                 .setCustomId('descriptionInput')
                 .setLabel('내용')
@@ -73,7 +70,6 @@ client.on('interactionCreate', async interaction => {
                 .setPlaceholder('내용을 입력하세요')
                 .setRequired(true);
 
-            // 색코드 입력 칸
             const colorInput = new TextInputBuilder()
                 .setCustomId('colorInput')
                 .setLabel('색코드')
@@ -91,7 +87,6 @@ client.on('interactionCreate', async interaction => {
         }
     }
 
-    // 2. 모달 제출 시 처리
     if (interaction.isModalSubmit()) {
         if (interaction.customId === 'dashboardModal') {
             const title = interaction.fields.getTextInputValue('titleInput');
@@ -111,37 +106,33 @@ client.on('interactionCreate', async interaction => {
                 embed.setColor('#5865F2');
             }
 
-            // 모달 응답을 보낸 후 기존 메시지 정리를 유도
             await interaction.reply({ embeds: [embed] });
         }
     }
 });
 
-// 다른 사람이 메시지를 올렸을 때 이전 봇 메시지를 지우고 아래에 다시 올리는 처리
+// 메시지가 올라올 때 이전 임베드를 삭제하고 맨 아래로 재전송
 client.on('messageCreate', async message => {
-    // 봇 자신이 보낸 메시지나 시스템 메시지는 무시
     if (message.author.bot) return;
 
     try {
-        // 해당 채널의 최근 메시지 50개 가져오기
-        const fetched = await message.channel.messages.fetch({ limit: 50 });
+        const fetched = await message.channel.messages.fetch({ limit: 30 });
         
-        // 봇이 이전에 보낸 임베드 메시지 찾기
+        // 봇이 올렸던 메시지 중 임베드가 포함된 메시지 찾기
         const botMessages = fetched.filter(m => m.author.id === client.user.id && m.embeds.length > 0);
 
         if (botMessages.size > 0) {
-            // 가장 최근에 봇이 올렸던 임베드 메세지 가져오기
             const lastBotMessage = botMessages.first();
             const lastEmbed = lastBotMessage.embeds[0];
 
-            // 이전 봇 메시지 삭제
-            await lastBotMessage.delete().catch(() => {});
+            // 1. 이전 임베드 메시지 삭제
+            await lastBotMessage.delete();
 
-            // 채널 맨 아래에 동일한 임베드 다시 전송
+            // 2. 새로운 임베드로 아래에 다시 전송
             await message.channel.send({ embeds: [EmbedBuilder.from(lastEmbed)] });
         }
     } catch (error) {
-        console.error('메시지 재전송 에러:', error);
+        console.error('메시지 재전송 처리 중 에러:', error);
     }
 });
 
