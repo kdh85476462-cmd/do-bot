@@ -160,3 +160,15 @@ client.on('messageCreate', async (message) => {
 });
 
 client.login(TOKEN);
+// Render가 봇을 웹 서비스로 인식할 수 있도록 가짜 웹서버(Express) 가동
+const express = require('express');
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.get('/', (req, res) => {
+    res.send('Bot is running!');
+});
+
+app.listen(PORT, () => {
+    console.log(`웹 서버가 포트 ${PORT}에서 작동 중입니다.`);
+});
