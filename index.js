@@ -69,12 +69,12 @@ client.on('interactionCreate', async interaction => {
                 .setPlaceholder('내용을 입력하세요')
                 .setRequired(true);
 
-            // 색코드 입력 칸 (선택 사항)
+            // 색코드 입력 칸
             const colorInput = new TextInputBuilder()
                 .setCustomId('colorInput')
                 .setLabel('색코드')
                 .setStyle(TextInputStyle.Short)
-                .setPlaceholder('예: #FF0000 또는 Blue (기본값: Blue)')
+                .setPlaceholder('예: #FF0000')
                 .setRequired(false);
 
             const row1 = new ActionRowBuilder().addComponents(titleInput);
@@ -92,21 +92,18 @@ client.on('interactionCreate', async interaction => {
         if (interaction.customId === 'dashboardModal') {
             const title = interaction.fields.getTextInputValue('titleInput');
             const description = interaction.fields.getTextInputValue('descriptionInput');
-            let color = interaction.fields.getTextInputValue('colorInput') || '#5865F2'; // 기본 파란색
+            let color = interaction.fields.getTextInputValue('colorInput') || '#5865F2';
 
-            // 입력받은 색코드가 유효한지 체크 및 임베드 생성
             const embed = new EmbedBuilder()
                 .setTitle(title)
                 .setDescription(description);
 
             try {
-                // HEX 코드가 # 없이 입력된 경우 # 추가
                 if (!color.startsWith('#') && color.length === 6 && /^[0-9A-Fa-f]{6}$/.test(color)) {
                     color = `#${color}`;
                 }
                 embed.setColor(color);
             } catch (err) {
-                // 색코드가 잘못된 경우 기본 파란색 적용
                 embed.setColor('#5865F2');
             }
 
